@@ -78,3 +78,17 @@ Five core scheduling behaviours are verified:
 **4. `mark_task_done` and automatic next occurrence** — Marking a task done sets its status to `"done"`. If the task recurs, a fresh `"pending"` copy is appended with the correct `due_date` (today + 1 day for daily, today + 7 days for weekly), inheriting `pet_name`, `priority`, `duration_minutes`, and `recurrence`. Non-recurring tasks return `None` with no new task added.
 
 **5. Filter by status and pet** — `filter_by_status` returns only tasks matching the requested status. `filter_by_pet` returns only tasks whose `pet_name` matches. Tasks with status `"done"` before `generate_plan` is called are never scheduled or re-skipped.
+
+
+## Features list
+
+- **Greedy scheduling by priority** — `filter_by_time` iterates tasks sorted by priority (high → medium → low) and adds each one to the plan until the owner's available-time budget is exhausted. Tasks that would exceed the remaining budget are skipped.
+- **Recurring-task tie-breaking** — Within the same priority level, recurring tasks rank above non-recurring ones so that daily/weekly routines (e.g., feeding, morning walk) are never bumped by one-off tasks.
+- **Chronological time-slot assignment** — After tasks are selected, `_assign_start_times` walks the list and assigns sequential `start_time` / `end_time` values beginning at 08:00. The schedule is then displayed in ascending time order via `sort_by_time`.
+- **Conflict detection** — `detect_conflicts` compares every pair of scheduled tasks and flags overlapping windows using the interval-overlap condition (`a.start < b.end and b.start < a.end`). Conflicts are surfaced as warnings in the UI showing the exact time ranges involved.
+- **Filter by status** — `filter_by_status` returns only tasks matching a requested status (`pending`, `done`, or `skipped`), and the UI exposes this as a dropdown so owners can focus on what still needs to be done.
+- **Filter by pet** — `filter_by_pet` returns tasks belonging to a specific pet by name, supporting households with multiple pets.
+- **Task sorting in the UI** — The task list can be re-sorted on demand by priority (high → low), duration (short → long), or title (A → Z).
+- **Automatic next-occurrence generation** — When `mark_task_done` is called on a recurring task, it immediately appends a fresh `pending` copy with `due_date` set to today + 1 day (daily) or today + 7 days (weekly), inheriting all task attributes so the owner never has to re-enter routine tasks.
+- **Plan explanations** — After `generate_plan`, every task receives a human-readable reason explaining why it was included (priority level, available time, recurrence) or skipped (not enough time after higher-priority tasks).
+- **Upcoming recurring tasks panel** — After a schedule is generated, `next_recurring_tasks` lists each recurring task alongside its calculated next occurrence date so owners can see what is coming up.
