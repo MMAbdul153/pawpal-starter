@@ -316,3 +316,4 @@ def test_new_occurrence_preserves_pet_name_and_recurrence():
     assert next_task.recurrence == "weekly"
     assert next_task.priority == "high"
     assert next_task.duration_minutes == 10
+    assert next_task.due_date == datetime.date.today() + datetime.timedelta(weeks=1)

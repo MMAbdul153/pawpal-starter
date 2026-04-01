@@ -55,3 +55,26 @@ After the basic app was working, four smart features were added to make scheduli
 **Automatic next occurrence** — When the owner marks a recurring task as done, the app immediately creates a fresh copy of that task for the next occurrence and sets its due date automatically (today + 1 day for daily, today + 7 days for weekly). The owner never has to re-enter a routine task manually.
 
 **Conflict detection** — If two tasks end up overlapping in time (for example, when a task has a manually set start time that collides with another), the app flags it clearly in the schedule and shows exactly which tasks conflict and when.
+
+
+## Testing Pawpal+
+
+Tests live in `tests/test_pawpal.py` and use **pytest**. Run them from the project root:
+
+```bash
+pytest tests/test_pawpal.py -v
+```
+
+### What is tested
+
+Five core scheduling behaviours are verified:
+
+**1. Greedy scheduling respects available time** — `filter_by_time` selects tasks by priority until the owner's `available_minutes` budget is exhausted. Tests confirm that tasks exceeding remaining time are excluded and the total scheduled duration never exceeds the budget.
+
+**2. Priority ordering** — High-priority tasks are always chosen over lower-priority ones when time is tight. A recurring task wins a tie-break against a non-recurring task at the same priority level.
+
+**3. Conflict detection** — `detect_conflicts` flags pairs of tasks whose time windows overlap. Tests confirm that auto-assigned sequential times produce no conflicts, while manually set overlapping start times are caught correctly.
+
+**4. `mark_task_done` and automatic next occurrence** — Marking a task done sets its status to `"done"`. If the task recurs, a fresh `"pending"` copy is appended with the correct `due_date` (today + 1 day for daily, today + 7 days for weekly), inheriting `pet_name`, `priority`, `duration_minutes`, and `recurrence`. Non-recurring tasks return `None` with no new task added.
+
+**5. Filter by status and pet** — `filter_by_status` returns only tasks matching the requested status. `filter_by_pet` returns only tasks whose `pet_name` matches. Tasks with status `"done"` before `generate_plan` is called are never scheduled or re-skipped.
