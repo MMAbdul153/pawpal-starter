@@ -41,3 +41,17 @@ pip install -r requirements.txt
 5. Add tests to verify key behaviors.
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
+
+## Smarter Scheduling
+
+After the basic app was working, four smart features were added to make scheduling more useful.
+
+**Sorted time slots** — When a schedule is generated, each task is automatically given a start and end time (e.g. 08:00–08:30). Tasks are displayed in chronological order so the owner can follow the plan from top to bottom without any guesswork.
+
+**Filter by pet or status** — Every task tracks which pet it belongs to and whether it is pending, done, or skipped. The owner can filter the task list to see only what still needs to be done, what has already been completed, or what was left out of today's plan.
+
+**Recurring tasks** — A task can be set to repeat daily or weekly. Recurring tasks are given a small scheduling boost — when two tasks have the same priority, the recurring one is picked first. This keeps consistent routines (like feeding or a morning walk) from being bumped by one-off tasks.
+
+**Automatic next occurrence** — When the owner marks a recurring task as done, the app immediately creates a fresh copy of that task for the next occurrence and sets its due date automatically (today + 1 day for daily, today + 7 days for weekly). The owner never has to re-enter a routine task manually.
+
+**Conflict detection** — If two tasks end up overlapping in time (for example, when a task has a manually set start time that collides with another), the app flags it clearly in the schedule and shows exactly which tasks conflict and when.
