@@ -4,13 +4,23 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+My initial design had five classes: `Owner`, `Pet`, `Task`, `Scheduler`, and `Plan`.
+
+- **Owner** holds the pet owner's name, how much time they have available in a day, and any personal preferences. It is responsible for providing that information to the scheduler.
+- **Pet** holds the pet's name and species, and knows which owner it belongs to.
+- **Task** represents a single care activity (like a walk or feeding). It stores the task name, how long it takes, and its priority level. It can compare itself to another task to determine which is more important.
+- **Scheduler** is the main logic class. It takes an owner and a pet, holds a list of tasks, and is responsible for filtering tasks that fit within the owner's available time, sorting them by priority, and producing a daily plan.
+- **Plan** holds the final list of scheduled tasks and the reasoning behind each choice. It is responsible for displaying the schedule clearly and explaining why each task was included.
+
+The `Scheduler` sits at the center of the design — it uses the `Owner` and `Pet` as context, works with a list of `Task` objects, and produces a `Plan` as its output.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes, the design changed during implementation. The main change was removing `Plan` as a standalone class.
+
+In the initial design, `Plan` was its own class that held the scheduled tasks, total duration, and explanations, and had methods to display and explain the schedule. However, since `Plan` was always created and returned by `Scheduler`, it made more sense to just store that information directly on the `Scheduler` itself. After calling `generate_plan()`, the scheduler holds the results and you can call `display_plan()` and `explain_plan()` on it directly.
+
+This simplified the code — there was one fewer class to maintain, and the scheduler became the single place responsible for both building and presenting the plan.
 
 ---
 

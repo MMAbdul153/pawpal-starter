@@ -1,3 +1,6 @@
+PRIORITY_RANK = {"low": 1, "medium": 2, "high": 3}
+
+
 class Owner:
     def __init__(self, name: str, available_minutes: int, preferences: list = None):
         self.name = name
@@ -5,10 +8,10 @@ class Owner:
         self.preferences = preferences if preferences is not None else []
 
     def add_preference(self, preference: str):
-        pass
+        self.preferences.append(preference)
 
     def get_available_time(self) -> int:
-        pass
+        return self.available_minutes
 
 
 class Pet:
@@ -18,7 +21,7 @@ class Pet:
         self.owner = owner
 
     def get_info(self) -> str:
-        pass
+        return f"{self.name} ({self.species}), owned by {self.owner.name}"
 
 
 class Task:
@@ -28,10 +31,10 @@ class Task:
         self.priority = priority
 
     def is_higher_priority_than(self, other: "Task") -> bool:
-        pass
+        return PRIORITY_RANK[self.priority] > PRIORITY_RANK[other.priority]
 
     def __repr__(self) -> str:
-        pass
+        return f"Task('{self.title}', {self.duration_minutes}min, {self.priority})"
 
 
 class Scheduler:
@@ -40,27 +43,58 @@ class Scheduler:
         self.pet = pet
         self.tasks: list[Task] = []
 
+        # Populated after generate_plan() is called
+        self.scheduled_tasks: list[Task] = []
+        self.total_duration: int = 0
+        self.explanations: dict[str, str] = {}
+
     def add_task(self, task: Task):
-        pass
-
-    def generate_plan(self) -> "Plan":
-        pass
-
-    def filter_by_time(self) -> list[Task]:
-        pass
+        self.tasks.append(task)
 
     def sort_by_priority(self) -> list[Task]:
-        pass
+        return sorted(self.tasks, key=lambda t: PRIORITY_RANK[t.priority], reverse=True)
 
+    def filter_by_time(self) -> list[Task]:
+        """Pick tasks greedily by priority until available time is used up."""
+        available = self.owner.get_available_time()
+        chosen = []
+        for task in self.sort_by_priority():
+            if task.duration_minutes <= available:
+                chosen.append(task)
+                available -= task.duration_minutes
+        return chosen
 
-class Plan:
-    def __init__(self, scheduled_tasks: list[Task], explanations: dict[str, str]):
-        self.scheduled_tasks = scheduled_tasks
-        self.total_duration = sum(t.duration_minutes for t in scheduled_tasks)
-        self.explanations = explanations
+    def generate_plan(self):
+        """Run scheduling logic and store results on this object."""
+        self.scheduled_tasks = self.filter_by_time()
+        self.total_duration = sum(t.duration_minutes for t in self.scheduled_tasks)
+        self.explanations = {}
 
-    def display(self) -> str:
-        pass
+        skipped = {t.title for t in self.tasks} - {t.title for t in self.scheduled_tasks}
 
-    def explain(self) -> str:
-        pass
+        for task in self.scheduled_tasks:
+            self.explanations[task.title] = (
+                f"Included because it has {task.priority} priority "
+                f"and fits within {self.owner.name}'s available time."
+            )
+        for title in skipped:
+            self.explanations[title] = "Skipped — not enough time remaining after higher-priority tasks."
+
+    def display_plan(self) -> str:
+        if not self.scheduled_tasks:
+            return "No tasks could be scheduled. Check available time or add tasks."
+
+        lines = [f"Daily plan for {self.pet.name}:"]
+        for i, task in enumerate(self.scheduled_tasks, start=1):
+            lines.append(f"  {i}. {task.title} — {task.duration_minutes} min [{task.priority} priority]")
+        lines.append(f"\nTotal time: {self.total_duration} min / {self.owner.get_available_time()} min available")
+        return "\n".join(lines)
+
+    def explain_plan(self) -> str:
+        if not self.explanations:
+            return "No plan generated yet. Call generate_plan() first."
+
+        lines = ["Plan explanation:"]
+        for title, reason in self.explanations.items():
+            lines.append(f"  - {title}: {reason}")
+        return "\n".join(lines)
